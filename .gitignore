@@ -1,4 +1,6 @@
 */data
+*/dump
+*/tensorboard
 */exp
 *.ark
 *.scp
