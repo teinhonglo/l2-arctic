@@ -49,7 +49,8 @@ eval "$(/share/homes/teinhonglo/anaconda3/bin/conda shell.bash hook)"
 if [ $stage -le 2 ]; then
     # python
 	python local/compute_capt_accuracy.py --anno $capt_dir/annotation.txt \
-                                          --pred $capt_dir/prediction.txt > $capt_dir/results.log
+                                          --pred $capt_dir/prediction.txt \
+                                          --capt_dir $capt_dir > $capt_dir/results.log
 fi
 
 cat $capt_dir/results.log

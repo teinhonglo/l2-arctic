@@ -12,6 +12,7 @@ bpemodel=""
 remove_blank=true
 filter=""
 num_spkrs=1
+phonemap=conf/phones.60-48-39.map
 help_message="Usage: $0 <data-dir> <dict>"
 
 . utils/parse_options.sh
@@ -42,19 +43,26 @@ if [ $num_spkrs -eq 1 ]; then
       sed -i.bak3 -f ${filter} ${dir}/hyp.trn
       sed -i.bak3 -f ${filter} ${dir}/ref.trn
   fi
+  
+  for f in ${dir}/ref.trn ${dir}/hyp.trn; do
+    cat $f | local/timit_norm_trans.pl -i - -m $phonemap -from 48 -to 39 > ${f}.39
+  done
 
   sclite -r ${dir}/ref.trn trn -h ${dir}/hyp.trn trn -i rm -o all stdout > ${dir}/result.txt
+  sclite -r ${dir}/ref.trn.39 trn -h ${dir}/hyp.trn.39 trn -i rm -o all stdout > ${dir}/result.39.txt
 
   echo "write a CER (or TER) result in ${dir}/result.txt"
   grep -e Avg -e SPKR -m 2 ${dir}/result.txt
+  echo "write a CER (or TER) result in ${dir}/result.39.txt"
+  grep -e Avg -e SPKR -m 2 ${dir}/result.39.txt
 
   if ${wer}; then
       if [ -n "$bpe" ]; then
-  	    spm_decode --model=${bpemodel} --input_format=piece < ${dir}/ref.trn | sed -e "s/▁/ /g" > ${dir}/ref.wrd.trn
-  	    spm_decode --model=${bpemodel} --input_format=piece < ${dir}/hyp.trn | sed -e "s/▁/ /g" > ${dir}/hyp.wrd.trn
+        spm_decode --model=${bpemodel} --input_format=piece < ${dir}/ref.trn | sed -e "s/â/ /g" > ${dir}/ref.wrd.trn
+        spm_decode --model=${bpemodel} --input_format=piece < ${dir}/hyp.trn | sed -e "s/â/ /g" > ${dir}/hyp.wrd.trn
       else
-  	    sed -e "s/ //g" -e "s/(/ (/" -e "s/<space>/ /g" ${dir}/ref.trn > ${dir}/ref.wrd.trn
-  	    sed -e "s/ //g" -e "s/(/ (/" -e "s/<space>/ /g" ${dir}/hyp.trn > ${dir}/hyp.wrd.trn
+        sed -e "s/ //g" -e "s/(/ (/" -e "s/<space>/ /g" ${dir}/ref.trn > ${dir}/ref.wrd.trn
+        sed -e "s/ //g" -e "s/(/ (/" -e "s/<space>/ /g" ${dir}/hyp.trn > ${dir}/hyp.wrd.trn
       fi
       sclite -r ${dir}/ref.wrd.trn trn -h ${dir}/hyp.wrd.trn trn -i rm -o all stdout > ${dir}/result.wrd.txt
 
@@ -102,8 +110,8 @@ elif [ ${num_spkrs} -lt 4 ]; then
   if ${wer}; then
       for n in $(seq ${num_spkrs}); do
           if [ -n "$bpe" ]; then
-              spm_decode --model=${bpemodel} --input_format=piece < ${dir}/ref${n}.trn | sed -e "s/▁/ /g" > ${dir}/ref${n}.wrd.trn
-              spm_decode --model=${bpemodel} --input_format=piece < ${dir}/hyp${n}.trn | sed -e "s/▁/ /g" > ${dir}/hyp${n}.wrd.trn
+              spm_decode --model=${bpemodel} --input_format=piece < ${dir}/ref${n}.trn | sed -e "s/â/ /g" > ${dir}/ref${n}.wrd.trn
+              spm_decode --model=${bpemodel} --input_format=piece < ${dir}/hyp${n}.trn | sed -e "s/â/ /g" > ${dir}/hyp${n}.wrd.trn
           else
               sed -e "s/ //g" -e "s/(/ (/" -e "s/<space>/ /g" ${dir}/ref${n}.trn > ${dir}/ref${n}.wrd.trn
               sed -e "s/ //g" -e "s/(/ (/" -e "s/<space>/ /g" ${dir}/hyp${n}.trn > ${dir}/hyp${n}.wrd.trn

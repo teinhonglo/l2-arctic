@@ -10,11 +10,13 @@ should_say="data/test_l2_should_say/text"
 actual_say="data/test_l2/text"
 predict_say=
 capt_dir=
+phone_table=
+ignored_phones="<eps>"
 
 . parse_options.sh || exit 1;
 
-if [ -z $predict_say ] || [ -z $capt_dir ]; then
-	echo "local/compute_capt_accuracy.sh --should_say data/test_l2_should_say/text --actual_say data/test_l2/text --predict_say exp/chain/tdnn1k_sp/decode_test_l2/scoring/4.tra --capt-dir exp/chain/tdnn1k_sp/decode_test_l2/capt"
+if [ -z $predict_say ] || [ -z $capt_dir ] || [ -z $phone_table ]; then
+	echo "local/compute_capt_accuracy.sh --should_say data/test_l2_should_say/text --actual_say data/test_l2/text --predict_say exp/chain/tdnn1k_sp/decode_test_l2/scoring/4.tra --capt-dir exp/chain/tdnn1k_sp/decode_test_l2/capt --phone_table data/local/lang/phones.txt"
 	exit 0;
 fi
 
@@ -48,7 +50,10 @@ eval "$(/share/homes/teinhonglo/anaconda3/bin/conda shell.bash hook)"
 if [ $stage -le 2 ]; then
     # python
 	python local/compute_capt_accuracy.py --anno $capt_dir/annotation.txt \
-                                          --pred $capt_dir/prediction.txt > $capt_dir/results.log
+                                          --pred $capt_dir/prediction.txt \
+                                          --capt_dir $capt_dir \
+                                          --phone_table $phone_table \
+                                          --ignored_phones $ignored_phones > $capt_dir/results.log
 fi
 
 cat $capt_dir/results.log

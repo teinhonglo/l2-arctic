@@ -17,7 +17,7 @@ ivectors_dir=exp/nnet3
 lang=data/lang
 data_root=data
 exp_root=exp/chain
-reduce="false"
+reduce="true"
 models="$exp_root/cnn_tdnn1c_sp"
 phonemap="conf/phones.60-48-39.map"
 

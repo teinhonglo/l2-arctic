@@ -1,5 +1,5 @@
 
-train_dir=data/all
+train_dir=data/l2_annotated
 outdir=${train_dir}_wav
 outwav_dir=${train_dir}_wav/wav
 wavscp=$train_dir/wav.scp

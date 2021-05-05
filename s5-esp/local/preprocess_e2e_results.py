@@ -18,7 +18,6 @@ with open(args.src, "r") as fn:
         uttid = '-'.join(re.sub("\(|\)", "", spkid_uttid).split("-")[1:])
         content = ' '.join(info[:-1])
         new_hyp[uttid] = content
-        print(len(list(new_hyp.keys())))
 
 with open(args.dest, "w") as fn:
     for utt_id, content in new_hyp.items():
