@@ -1,6 +1,6 @@
 batch_type: numel
-batch_bins: 16000000
-accum_grad: 4
+batch_size: 32
+accum_grad: 8
 max_epoch: 200
 patience: none
 # The initialization method for model parameters
@@ -13,8 +13,8 @@ keep_nbest_models: 10
 
 encoder: transformer
 encoder_conf:
-    output_size: 512
-    attention_heads: 8
+    output_size: 256
+    attention_heads: 4
     linear_units: 2048
     num_blocks: 12
     dropout_rate: 0.1
@@ -25,7 +25,7 @@ encoder_conf:
 
 decoder: transformer
 decoder_conf:
-    attention_heads: 8
+    attention_heads: 4
     linear_units: 2048
     num_blocks: 6
     dropout_rate: 0.1
@@ -40,10 +40,10 @@ model_conf:
 
 optim: adam
 optim_conf:
-    lr: 0.002
+    lr: 0.005
 scheduler: warmuplr
 scheduler_conf:
-    warmup_steps: 25000
+    warmup_steps: 60000
 
 specaug: specaug
 specaug_conf:
