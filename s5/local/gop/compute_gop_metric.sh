@@ -137,7 +137,7 @@ if [ $stage -le 5 ]; then
         fi
         for model in $models; do
             echo "Compute GOP-score $model"
-            python local/gop/compute_gop_metric_dev.py --test_set $model/gop_${dset}_capt_hires --dev_set $model/gop_${dev_set}_capt_hires
+            python local/gop/compute_gop_metric_dev.py --test_set $model/gop_${dset}_capt_hires --dev_set $model/gop_${dev_set}_capt_hires > $model/gop_${dset}_capt_hires/results.log
         done
    done
 fi

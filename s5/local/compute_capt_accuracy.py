@@ -194,7 +194,6 @@ if __name__ == "__main__":
     sent_anno = process_fn(args.anno, sent_anno)
     sent_pred = process_fn(args.pred, sent_pred)
     anno_list, pred_list, diag_report, anno_hyp_list, pred_hyp_list = comp_metric(sent_anno, sent_pred)
-    
     tn, fp, fn, tp = confusion_matrix(anno_list, pred_list).ravel()
     print("tn, fp, fn, tp")
     print(tn, fp, fn, tp)

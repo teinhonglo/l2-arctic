@@ -11,6 +11,7 @@ actual_say="data/test_l2/text"
 predict_say=
 capt_dir=
 phone_table=
+espnet_ver="1"
 ignored_phones="<eps>,<space>"
 
 . utils/parse_options.sh || exit 1;
@@ -26,7 +27,11 @@ if [ ! -d $capt_dir ]; then
 fi
 
 if [ $stage -le -1 ]; then
-    python local/preprocess_e2e_results.py --src $predict_say --dest $capt_dir/espnet_predict_say.txt
+    if [ $espnet_ver == "1" ]; then
+        python local/preprocess_e2e_results.py --src $predict_say --dest $capt_dir/espnet_predict_say.txt
+    else
+        cp $predict_say $capt_dir/espnet_predict_say.txt
+    fi
 fi
 
 # Map reference to 39 phone classes

@@ -143,9 +143,11 @@ if __name__ == "__main__":
     [ground_truth, prediction, uttid_results, thresholds] = conv_GOP2Pred_by_threshold(dev_phone_gop_ann, dev_phone_uttid)
     [ground_truth, prediction, uttid_results, thresholds] = conv_GOP2Pred_by_threshold(phone_gop_ann, phone_uttid, thresholds) 
 
-    from sklearn.metrics import classification_report
+    from sklearn.metrics import classification_report, confusion_matrix
     import pprint
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(classification_report(ground_truth, prediction, output_dict=True))
-    
+    tn, fp, fn, tp = confusion_matrix(ground_truth, prediction).ravel()
+    print("tn, fp, fn, tp")
+    print(tn, fp, fn, tp)
     print("Evaluation Done !")

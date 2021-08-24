@@ -10,11 +10,13 @@ should_say="data/test_l2_should_say/text"
 actual_say="data/test_l2/text"
 predict_say=
 capt_dir=
+ctm_file=
 
 . parse_options.sh || exit 1;
 
 if [ -z $predict_say ] || [ -z $capt_dir ]; then
-	echo "local/compute_capt_accuracy.sh --should_say data/test_l2_should_say/text --actual_say data/test_l2/text --predict_say exp/chain/tdnn1k_sp/decode_test_l2/scoring/4.tra --capt-dir exp/chain/tdnn1k_sp/decode_test_l2/capt"
+    echo "data_set=test_l2; dict=data/lang_1char/train_tr_units.txt; dir=exp/chain/cnn_tdnn1c_sp/decode_4grl2mix05_test_l2"
+	echo 'local/compute_capt_accuracy.sh --should_say data/${data_set}_should_say/text --actual_say data/${data_set}/text --predict_say ${dir}/scoring/4.tra --capt-dir ${dir}/capt --ctm-file ${dir}/ctm/ctm'
 	exit 0;
 fi
 
@@ -52,5 +54,18 @@ if [ $stage -le 2 ]; then
                                           --pred $capt_dir/prediction.txt \
                                           --capt_dir $capt_dir > $capt_dir/results.log
 fi
+
+if [ $stage -le 3 ]; then
+    if [ ! -z $ctm_file ]; then
+        cat $ctm_file | local/timit_norm_trans.pl -i - -m $phonemap -from 48 -to 39 | grep -v "sil" > $capt_dir/ctm.39.txt
+    	python local/report_capt_raw_data.py --anno $capt_dir/annotation.txt \
+                                         --pred $capt_dir/prediction.txt \
+                                         --capt_dir $capt_dir \
+                                         --ctm_file $capt_dir/ctm.39.txt
+    else
+        echo "Parameter ctm_file is unset, don't report raw_data"
+    fi
+fi
+
 
 cat $capt_dir/results.log

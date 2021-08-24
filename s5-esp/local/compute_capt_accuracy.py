@@ -75,7 +75,7 @@ def comp_metric(sent_anno, sent_pred):
             anno_list.append(anno)
             pred_list.append(pred)
             # diagose
-            if pred == 0:
+            if pred == 0 and anno == 0:
                 if anno_info["hyp"][i] == pred_info["hyp"][i]:                
                     diag_report["ce"] += 1
                 else:
@@ -140,6 +140,89 @@ def report_error_details(sent_anno, sent_pred):
                 
     return l1_stats    
 
+def report_accuracy_details(sent_anno, sent_pred):
+    # return (MP_info):
+    # { "l1_id": {"err_type": [correct_detect, correct_diagnose, total]}}
+    spk2l1 = {  "ABA":"Arabic", "SKA":"Arabic", "YBAA":"Arabic", "ZHAA":"Arabic", 
+                "BWC":"Mandarin", "LXC":"Mandarin", "NCC":"Mandarin", "TXHC":"Mandarin", 
+                "ASI":"Hindi", "RRBI":"Hindi", "SVBI":"Hindi", "TNI":"Hindi", "HJK":"Korean", 
+                "HKK":"Korean", "YDCK":"Korean", "YKWK":"Korean", "EBVS":"Spanish", 
+                "ERMS":"Spanish", "MBMPS":"Spanish", "NJS":"Spanish", "HQTV":"Vietnamese", 
+                "PNV":"Vietnamese", "THV":"Vietnamese","TLV":"Vietnamese"}
+    utt_ids = list(sent_anno.keys())
+    l1_stats = {}
+    
+    for utt_id in utt_ids:
+        anno_info = sent_anno[utt_id]
+        pred_info = sent_pred[utt_id]
+        assert len(anno_info["op"]) == len(pred_info["op"])
+        
+        spk = utt_id.split("_")[0]
+        l1 = spk2l1[spk]
+        
+        if l1 not in l1_stats:
+            l1_stats[l1] = {}
+        
+        for i in range(len(anno_info["op"])):
+            # MDD analysis
+            err_type = anno_info["op"][i]
+            
+            if err_type == "S":
+                err_info = "S_" + anno_info["ref"][i] + "->" + anno_info["hyp"][i] 
+            elif err_type == "C":
+                err_info = "C_" + anno_info["ref"][i] + "->" + anno_info["hyp"][i]
+            elif err_type == "D":
+                err_info = "D_" + anno_info["ref"][i] + "->SIL"
+            
+            # [correct detect, correct diagnose, total]
+            if err_info not in l1_stats[l1]:
+                l1_stats[l1][err_info] = [0, 0, 0]
+                
+            # correct detect
+            if err_type in ["S", "D"] and pred_info["op"][i] in ["S", "D"]:
+                l1_stats[l1][err_info][0] += 1
+            elif err_type in ["C"] and pred_info["op"][i] in ["C"]:
+                l1_stats[l1][err_info][0] += 1
+                
+            # correct diagnose
+            if pred_info["hyp"][i] == anno_info["hyp"][i]:
+                l1_stats[l1][err_info][1] += 1
+                
+            l1_stats[l1][err_info][2] += 1
+                
+    return l1_stats
+
+def output_csv_info(capt_dir, l1_stats, csv_affix = ""):
+    err_types = {}
+    
+    # speaker-wise information
+    with open(capt_dir + "/per_l1"+csv_affix+".csv", "w") as fn:
+        fn.write("l1, err_type, cdetect, cdiagnose, total\n")
+        for l1_id in list(l1_stats.keys()):
+            l1_err_types = l1_stats[l1_id]
+            for err_type in list(l1_err_types.keys()):
+                info = l1_id + "," + err_type
+                err_stats = l1_err_types[err_type]
+                
+                if err_type not in err_types:
+                    err_types[err_type] = [0, 0, 0]
+                
+                for i in range(len(err_types[err_type])):
+                    err_types[err_type][i] += err_stats[i]
+                    info += "," + str(err_stats[i])
+                fn.write(info + "\n")
+    
+    # corpus-wise information
+    with open(capt_dir + "/per_all"+csv_affix+".csv", "w") as fn:
+        fn.write("err_type, cdetect, cdiagnose, total\n")
+        for err_type in list(err_types.keys()):
+            info = err_type
+            err_stats = err_types[err_type]
+                
+            for i in range(len(err_types[err_type])):
+                info += "," + str(err_stats[i])
+            fn.write(info + "\n")
+    
 
 def plot_phn_conf_mat(anno_hyp_list, pred_hyp_list, phone_dict, capt_dir):
     num_phns = len(list(phone_dict.keys()))
@@ -217,32 +300,7 @@ if __name__ == "__main__":
     
     # plot_phn_conf_mat(anno_hyp_list, pred_hyp_list, phone_dict, args.capt_dir)
     l1_stats = report_error_details(sent_anno, sent_pred)
-    err_types = {}
+    l1_acc_stats = report_accuracy_details(sent_anno, sent_pred)
     
-    # speaker-wise information
-    with open(args.capt_dir + "/per_l1.csv", "w") as fn:
-        fn.write("l1, err_type, cdetect, cdiagnose, total\n")
-        for l1_id in list(l1_stats.keys()):
-            l1_err_types = l1_stats[l1_id]
-            for err_type in list(l1_err_types.keys()):
-                info = l1_id + "," + err_type
-                err_stats = l1_err_types[err_type]
-                
-                if err_type not in err_types:
-                    err_types[err_type] = [0, 0, 0]
-                
-                for i in range(len(err_types[err_type])):
-                    err_types[err_type][i] += err_stats[i]
-                    info += "," + str(err_stats[i])
-                fn.write(info + "\n")
-    
-    # corpus-wise information
-    with open(args.capt_dir + "/per_all.csv", "w") as fn:
-        fn.write("err_type, cdetect, cdiagnose, total\n")
-        for err_type in list(err_types.keys()):
-            info = err_type
-            err_stats = err_types[err_type]
-                
-            for i in range(len(err_types[err_type])):
-                info += "," + str(err_stats[i])
-            fn.write(info + "\n")
+    output_csv_info(args.capt_dir, l1_stats)
+    output_csv_info(args.capt_dir, l1_acc_stats, "_acc")
